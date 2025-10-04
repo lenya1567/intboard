@@ -1,0 +1,27 @@
+.textField {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+    font-weight: 600;
+}
+
+.label {
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.input {
+    border: 1px solid lightgray;
+    border-radius: 16px;
+    padding: 16px;
+
+    font-size: 20px;
+    font-family: inherit;
+
+    outline: none;
+}
+
+.error {
+    margin-top: 6px;
+    color: red;
+}

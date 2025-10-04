@@ -1,0 +1,10 @@
+body {
+    --color-background: #DDF4E7;
+    --color-text: #67C090;
+    --color-primary: #26667F;
+
+    --color-primary-dark: #1D4C5F;
+    --color-primary-dark-active: #173D4C;
+
+    --orientation: row;
+}

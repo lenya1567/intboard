@@ -1,0 +1,29 @@
+.boardName {
+    font-size: 1.2em;
+    font-weight: 500;
+    color: #555;
+
+    outline: none;
+    min-width: 20vw;
+}
+
+.boardName:focus {
+    color: black;
+}
+
+.nav {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+
+    background-color: white;
+    box-shadow: #EEE 0 0 16px;
+
+    padding: 16px;
+    border-radius: 16px;
+
+    max-width: 50vw;
+    width: fit-content;
+    overflow: auto;
+}

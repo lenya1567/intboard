@@ -1,0 +1,21 @@
+.spinner {
+    stroke: var(--color-primary);
+    stroke-dasharray: 64px;
+
+    animation-name: rotation;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    transform-origin: 50% 50%;
+    zoom: 1.5;
+}
+
+@keyframes rotation {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

@@ -1,0 +1,22 @@
+.item {
+    padding: 24px;
+    background-color: white;
+    border-radius: 32px;
+}
+
+.body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.name {
+    font-size: 24px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.last {
+    font-weight: 400;
+    color: gray;
+}

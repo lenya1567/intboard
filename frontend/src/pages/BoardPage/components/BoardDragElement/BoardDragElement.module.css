@@ -1,0 +1,9 @@
+.dragElement {
+    height: 16px;
+    cursor: move;
+
+    background-color: #DDD;
+    background-image: radial-gradient(circle at 2px 2px, #AAA 1px, #0000 0);
+    background-position: 2px 2px;
+    background-size: 8px 8px;
+}

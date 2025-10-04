@@ -1,0 +1,36 @@
+.logo {
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.nav {
+    background-color: white;
+    box-shadow: var(--color-background) 0 0 16px;
+
+    padding: 24px;
+    padding-inline: 24px;
+    border-radius: 32px;
+
+    display: flex;
+    align-items: center;
+}
+
+.navItems {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    margin-right: auto;
+    margin-left: 16px;
+}
+
+.navItems>* {
+    all: unset;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.navItems>*:hover {
+    color: var(--color-primary)
+}
