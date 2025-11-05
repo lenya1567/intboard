@@ -19,6 +19,8 @@
     font-family: inherit;
 
     outline: none;
+    resize: none;
+    overflow: auto;
 }
 
 .error {

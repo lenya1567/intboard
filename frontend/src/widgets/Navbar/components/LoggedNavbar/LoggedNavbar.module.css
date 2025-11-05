@@ -1,0 +1,11 @@
+.nav {
+    background-color: white;
+    border-right: 1px solid lightgray;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 8px;
+}
+
+.break {
+    flex-grow: 1;
+}

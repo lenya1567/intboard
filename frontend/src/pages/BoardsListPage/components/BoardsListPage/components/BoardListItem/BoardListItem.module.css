@@ -1,0 +1,39 @@
+.item {
+    background-color: white;
+    border-radius: 16px;
+    padding: 16px;
+    cursor: pointer;
+    border: 1px solid lightgray;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item:hover {
+    background-color: whitesmoke;
+}
+
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.description {
+    color: gray;
+}
+
+.members {
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.member:not(:first-child) {
+    max-width: 24px;
+}

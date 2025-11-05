@@ -1,0 +1,20 @@
+.avatar {
+    --radius: 24px;
+
+    font-size: 20px;
+    background-color: blue;
+    color: white;
+
+    width: calc(var(--radius) * 2);
+    height: calc(var(--radius) * 2);
+    border-radius: calc(var(--radius) + 1px);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 0;
+
+    border: 1px solid whitesmoke;
+}

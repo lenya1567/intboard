@@ -53,8 +53,10 @@
 }
 
 .content {
+    box-sizing: border-box;
     position: relative;
     min-width: 450px;
+    max-width: 450px;
     background-color: white;
     border-radius: 32px;
     padding: 24px;

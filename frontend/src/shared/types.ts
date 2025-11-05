@@ -6,7 +6,7 @@ export interface ClassNameProps {
 }
 
 export interface ButtonActionsProps {
-    onClick?: (ev: MouseEvent) => void;
+    onClick?: (ev: MouseEvent<any>) => void;
 }
 
 export interface TextFieldActionsProps {

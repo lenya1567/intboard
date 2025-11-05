@@ -50,3 +50,16 @@ export async function signUpUser(form: SignUpForm): RequestResult {
         return requestResult(Errors.ServerError);
     }
 }
+
+export async function signOutUser(): RequestResult {
+    try {
+        await server.delete("/auth/logout");
+        return requestResult(Errors.NoError);
+    } catch (err) {
+        const error = err as AxiosError;
+        if (error.status === 401) {
+            return requestResult(Errors.NotAuthorized);
+        }
+        return requestResult(Errors.ServerError);
+    }
+}

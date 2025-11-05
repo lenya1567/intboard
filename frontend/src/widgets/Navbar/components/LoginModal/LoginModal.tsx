@@ -1,27 +1,33 @@
-import { Button, Form, Modal, TextField } from "#widgets";
 import { useSearchParams } from "react-router-dom";
 import styles from './LoginModal.module.css';
-import { useCallback } from "react";
+import { useCallback, useContext } from "react";
 import { Errors, ValidationType } from "#shared";
-import { signInUser } from "#entities";
+import { signInUser } from "#entities/auth";
+import { Modal } from "#widgets/Modal";
+import { Form } from "#widgets/Form";
+import { TextField } from "#widgets/TextField";
+import { Button } from "#widgets/Button";
+import { UserContext } from "#app/router/lib/context";
 
-export function LoginModal() {
+export function LoginModal({ important }: { important?: boolean }) {
     const [params, setParams] = useSearchParams();
+    const user = useContext(UserContext);
 
     const handleSignIn = useCallback(async (form: Record<string, string>) => {
         const { error } = await signInUser({
-            login: form.login,
-            password: form.password,
+            login: form.username,
+            password: form['current-password'],
         });
 
         switch (error) {
             case Errors.NoError:
                 setParams({});
+                user.resetUser();
                 return;
             case Errors.NoUser:
-                return { login: "Неверный логин или пароль" }
+                return { username: "Неверный логин или пароль" }
             case Errors.ServerError:
-                return { password: "Ошибка сервера, повторите попытку позже" };
+                return { 'current-password': "Ошибка сервера, повторите попытку позже" };
         }
     }, []);
 
@@ -29,17 +35,17 @@ export function LoginModal() {
     const handleClose = useCallback(() => setParams({}), [setParams]);
 
     return (
-        <Modal opened={params.has("login")} onClose={handleClose}>
+        <Modal opened={params.has("login")} onClose={handleClose} ignoreTintClose={important}>
             <h1 className={styles.header}>Вход в аккаунт</h1>
             <Form className={styles.form} onSubmit={handleSignIn}>
                 <TextField
-                    name="login"
+                    name="username"
                     title="Логин:"
                     validation={ValidationType.NotEmpty}
                     message="Логин не должен быть пустым"
                 />
                 <TextField
-                    name="password"
+                    name="current-password"
                     title="Пароль:"
                     validation={ValidationType.Password}
                     message="Пароль не должен быть пустым"

@@ -25,8 +25,8 @@ export function Button(props: ButtonProps) {
     return <button
         className={classNames(
             styles.button,
-            (props.fullsize && props.href) && styles.fullsize,
-            (props.outlined && props.href) && styles.outlined,
+            (props.fullsize && !props.href) && styles.fullsize,
+            (props.outlined && !props.href) && styles.outlined,
             props.href && styles.href,
             props.className
         )}

@@ -4,3 +4,4 @@ export * from './colors';
 export * from './errors';
 export * from './functions';
 export * from './server';
+export * from './urls';

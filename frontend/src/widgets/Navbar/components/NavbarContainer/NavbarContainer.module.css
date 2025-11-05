@@ -1,0 +1,74 @@
+.nav {
+    position: relative;
+    z-index: 2;
+    background-color: white;
+    border-right: 1px solid lightgray;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 8px;
+}
+
+.elements {
+    overflow: hidden;
+    transition: width 0.5s;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.elementsChildren {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    width: 240px;
+}
+
+.opened {
+    width: 240px;
+}
+
+.closed {
+    width: 0;
+}
+
+.navIcon {
+    position: absolute;
+    line-height: 1;
+    left: 100%;
+    margin: 16px;
+    width: 50px;
+    height: 50px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 25px;
+    transition: background-color 0.3s;
+    opacity: 0.5;
+
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+
+    z-index: 2;
+}
+
+.navIcon:hover {
+    background-color: whitesmoke;
+}
+
+.navIcon:active {
+    background-color: lightgray;
+}
+
+.navIcon img {
+    width: 24px;
+    height: 24px;
+}
+
+.iconOpened {}
+
+.iconClosed {
+    transform: rotate(180deg);
+}

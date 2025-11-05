@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type PropsWithChildren } from "react";
+import { useCallback, useMemo, useState, type MouseEvent, type PropsWithChildren } from "react";
 import { FormContext } from "../../context/context";
 import { validateValue, type ClassNameProps, type ValidationType } from "#shared";
 
@@ -46,6 +46,8 @@ export function Form(props: FormProps) {
         }
     }, [form, errors, validations, setForm, setErrors]);
 
+    const preventDefault = useCallback((ev: MouseEvent<HTMLFormElement>) => ev.preventDefault(), [])
+
     const value = useMemo(() => ({
         errors,
         form,
@@ -55,8 +57,8 @@ export function Form(props: FormProps) {
     }), [errors, form, handleUpdate, handleSetValidation, handleSubmit]);
 
     return <FormContext.Provider value={value}>
-        <div className={props.className}>
+        <form className={props.className} onSubmit={preventDefault}>
             {props.children}
-        </div>
+        </form>
     </FormContext.Provider>
 }

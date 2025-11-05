@@ -1,0 +1,1 @@
+export { BoardsListPage } from "./components/BoardsListPage/BoardsListPage";

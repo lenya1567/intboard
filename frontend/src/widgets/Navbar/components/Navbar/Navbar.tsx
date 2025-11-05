@@ -5,7 +5,7 @@ import { Logo } from "../Logo/Logo";
 import styles from "./Navbar.module.css";
 import { Link, useSearchParams } from "react-router-dom";
 import { useContext } from "react";
-import { UserContext } from "#app";
+import { UserContext } from "#app/router/lib/context";
 
 export function Navbar() {
     const [_, setQuery] = useSearchParams();

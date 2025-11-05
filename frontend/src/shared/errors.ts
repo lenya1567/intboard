@@ -5,6 +5,7 @@ export const Errors = {
     LoginBusy: "LoginBusy",
     NotAuthorized: "NotAuthorized",
 
+    FormError: "FormError",
     ServerError: "ServerError",
 } as const;
 export type Errors = keyof typeof Errors;

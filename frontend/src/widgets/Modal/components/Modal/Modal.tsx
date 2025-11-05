@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState, type PropsWithChildren } from "react";
 import styles from './Modal.module.css';
 import classNames from "classnames";
+import type { ClassNameProps } from "#shared";
 
-export type ModalProps = PropsWithChildren & {
+export type ModalProps = PropsWithChildren & ClassNameProps & {
+    id?: string;
     opened?: boolean;
     ignoreTintClose?: boolean;
     onClose?: () => void;
@@ -25,10 +27,14 @@ export function Modal(props: ModalProps) {
         }
     }, [])
 
+    if (props.opened) {
+        console.log(props, classNames(styles.content, props.className));
+    }
+
     return (
         <div className={classNames(styles.modal, props.opened && styles.opened, modalState)}>
             <div className={styles.tint} onClick={handleClose} />
-            <div className={styles.content}>
+            <div className={classNames(styles.content, props.className)}>
                 {props.children}
             </div>
         </div>

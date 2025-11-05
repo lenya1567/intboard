@@ -29,3 +29,60 @@ body {
   margin: 0;
   min-width: 320px;
 }
+
+.rsw-editor {
+  flex-grow: 1;
+  border: none !important;
+  outline: none !important;
+}
+
+.rsw-ce {
+  box-sizing: border-box !important;
+  margin-top: 0 !important;
+  padding: 16px !important;
+  border: none !important;
+  outline: none !important;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rsw-ce ul {
+  display: flex;
+  flex-direction: column;
+  list-style-type: none;
+  gap: 4px;
+}
+
+.rsw-ce li::marker {
+  visibility: hidden;
+}
+
+.rsw-ce li::before {
+  content: "-";
+  align-items: center;
+  margin-right: 4px;
+}
+
+.rsw-toolbar .rsw-btn {
+  font-size: 22px;
+  line-height: 0;
+  border-bottom: 2px solid transparent;
+}
+
+.rsw-toolbar .rsw-btn img {
+  width: 22px;
+  height: 22px;
+}
+
+.rsw-toolbar .rsw-btn:has(img):hover {
+  background-color: rgba(255, 0, 0, 0.129);
+}
+
+.rsw-toolbar .rsw-btn[data-active=true] {
+  border-bottom: 2px solid var(--color-primary);
+}
+
+.rsw-toolbar .rsw-btn:nth-child(1) {
+  content: "";
+}

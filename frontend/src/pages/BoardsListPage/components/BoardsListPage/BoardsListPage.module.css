@@ -1,0 +1,24 @@
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.content {
+    padding: 16px;
+    flex-grow: 1;
+    overflow: auto;
+}
+
+.title {
+    font-size: 32px;
+    line-height: 50px;
+    font-weight: 500;
+}
+
+.boards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}

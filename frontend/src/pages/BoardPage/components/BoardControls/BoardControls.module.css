@@ -1,0 +1,51 @@
+.controls {
+    position: absolute;
+
+    z-index: 2;
+
+    transform: translateY(-50%);
+    top: 50%;
+    left: 16px;
+    background-color: white;
+    border-radius: 25px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    box-shadow: 0 0 10px #EEE;
+}
+
+.button {
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    transition: background-color 0.3s;
+    user-select: none;
+    -webkit-user-select: none;
+
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: whitesmoke;
+}
+
+.button:active {
+    background-color: lightgray;
+}
+
+.active {
+    background-color: #EEE;
+    outline: 1px solid #DDD;
+}
+
+.button img {
+    width: 24px;
+    height: 24px;
+}

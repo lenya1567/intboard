@@ -1,20 +1,14 @@
-import { useCallback, type FocusEvent, type KeyboardEvent } from "react";
-import styles from "./BoardNavbar.module.css";
+import { NavBarBreak, NavbarContainer, NavbarItem, NavbarLogo } from "#widgets/Navbar";
+
+import ExportIcon from "#assets/icons/export.svg";
+import PeopleIcon from "#assets/icons/people.svg";
 
 export default function BoardNavbar() {
-    const saveBoardName = useCallback((event: FocusEvent<HTMLDivElement>) => {
-        console.log(event.currentTarget.innerText)
-    }, []);
-
-    const boardEditFinished = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            event.currentTarget.blur();
-        }
-    }, []);
-
-    return <div className={styles.nav}>
-        <div className={styles.boardName} contentEditable onBlur={saveBoardName} onKeyDown={boardEditFinished}>
-        </div>
-    </div>
+    return <NavbarContainer withHidden>
+        <NavbarLogo />
+        <NavbarItem title="Приколист" caption="Доска:" />
+        <NavBarBreak />
+        <NavbarItem title="Экспортировать" img={ExportIcon} />
+        <NavbarItem title="Настройки доступа" img={PeopleIcon} />
+    </NavbarContainer>
 }
