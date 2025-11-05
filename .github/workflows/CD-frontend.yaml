@@ -27,10 +27,10 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with: 
-          context: ./frontend
+          context: .
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          file: ./Dockerfile
+          file: ./frontend/Dockerfile
           build-args: |
             IMAGE_NAME=${{ env.IMAGE_NAME }}
             REGISTRY=${{ env.REGISTRY }} 
