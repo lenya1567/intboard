@@ -3,6 +3,7 @@ services:
     build:
       context: ../frontend/
       dockerfile: Dockerfile
+    image: lepeshka2024/inboard-ui
     container_name: inboard-ui
     depends_on:
       - inboard-backend
