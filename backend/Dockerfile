@@ -11,7 +11,6 @@ COPY ./backend .
 RUN go mod download
 
 RUN go run github.com/playwright-community/playwright-go/cmd/playwright@v0.5200.1 install --with-deps
-RUN playwright install
 
 # Собираем основное приложение
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/main ./cmd/main.go
