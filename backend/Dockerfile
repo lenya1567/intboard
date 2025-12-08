@@ -5,10 +5,9 @@ FROM golang:1.24.1 AS builder
 WORKDIR /app
 
 # Копируем исходный код в контейнер
-COPY . .
+COPY ./backend .
 
 # Скачиваем зависимости
-RUN go mod tidy
 RUN go mod download
 
 RUN go run github.com/playwright-community/playwright-go/cmd/playwright@v0.5200.1 install --with-deps
