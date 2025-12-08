@@ -12,9 +12,10 @@ import { SignUpModal } from "#widgets/Navbar/components/SignUpModal/SignUpModal"
 type PageProps = PropsWithChildren & ColorProps & {
     centered?: boolean;
     noNav?: boolean;
+    noFullscreen?: boolean;
 }
 
-export function LoggedInPage({ color, children, centered, noNav }: PageProps) {
+export function LoggedInPage({ color, children, centered, noNav, noFullscreen }: PageProps) {
     const user = useContext(UserContext);
     const [query, setQuery] = useSearchParams();
 
@@ -43,7 +44,7 @@ export function LoggedInPage({ color, children, centered, noNav }: PageProps) {
             </div>
             : (
                 user.loggedIn
-                    ? <div className={styles.content}>
+                    ? <div className={!noFullscreen ? styles.content : ""}>
                         {!noNav && <LoggedNavbar />}
                         {children}
                     </div>

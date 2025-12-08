@@ -2,7 +2,7 @@ import { cloneElement, useContext, useEffect, useRef, useState, type MouseEvent,
 import styles from "./DragBlock.module.css";
 import { DragContext, type PositionProps } from "#app/router/lib/context";
 import type { BlockType } from "#entities/board";
-import { BoardContext } from "../../model/BoardContext";
+import { BoardContext } from "#entities/board/model/context";
 
 interface DragBlockProps {
     block: BlockType,
@@ -33,15 +33,33 @@ export function DragBlock({ block, children }: DragBlockProps) {
         drag: false,
     });
 
-    const boardRef = useRef<HTMLDivElement>(null);
+    const blockRef = useRef<HTMLDivElement>(null);
+    const blockPlaceholderRef = useRef<HTMLDivElement>(null);
     const lastTimeSend = useRef(0);
 
     const [dragStarted, setDragStarted] = useState(false);
 
     function updateStyles(newPosition: DragParams | ((prev: DragParams) => DragParams)) {
         position.current = typeof newPosition === 'function' ? newPosition(position.current) : newPosition;
-        boardRef.current!.style.top = `${position.current.top + position.current.dy}px`;
-        boardRef.current!.style.left = `${position.current.left + position.current.dx}px`;
+        const [posX, posY] = [position.current.left + position.current.dx, position.current.top + position.current.dy];
+
+        const block = blockRef.current!.children[0] as HTMLDivElement;
+        const rect = block.getBoundingClientRect();
+
+        if (!position.current.drag) {
+            blockPlaceholderRef.current!.style.transition = "width 1s, height 1s";
+        } else {
+            blockPlaceholderRef.current!.style.transition = "";
+        }
+
+        blockPlaceholderRef.current!.style.width = rect.width + 64 - Math.min(position.current.dx, 0) + "px";
+        blockPlaceholderRef.current!.style.height = rect.height + 64 - Math.min(position.current.dy, 0) + "px";
+
+        blockRef.current!.style.top = `${posY}px`;
+        blockRef.current!.style.left = `${posX}px`;
+
+        blockPlaceholderRef.current!.style.top = `${posY}px`;
+        blockPlaceholderRef.current!.style.left = `${posX}px`;
     }
 
     function dragMove(ctx: PositionProps, event: MouseEvent<HTMLElement>) {
@@ -57,7 +75,7 @@ export function DragBlock({ block, children }: DragBlockProps) {
 
         if (Date.now() - lastTimeSend.current > 10) {
             lastTimeSend.current = Date.now();
-            board?.updateBlock({
+            board?.board?.updateBlock({
                 id: block.id,
                 action: "MOVE",
                 data: JSON.stringify({
@@ -81,7 +99,7 @@ export function DragBlock({ block, children }: DragBlockProps) {
             drag: false,
         }));
 
-        board?.updateBlock({
+        board?.board?.updateBlock({
             id: block.id,
             action: "MOVE",
             data: JSON.stringify({
@@ -115,17 +133,20 @@ export function DragBlock({ block, children }: DragBlockProps) {
     useEffect(() => updateStyles(position.current), [])
 
     useEffect(() => {
-        board?.subscribe.onUpdateBlock(block.id, "position", updateBlock)
+        board?.board?.subscribe.onUpdateBlock(block.id, "position", updateBlock)
     }, [board, block, updateBlock])
 
-    return <div
-        className={styles.dragBlock}
-        ref={boardRef}
-    >
-        {cloneElement(children, {
-            block,
-            isDrag: dragStarted,
-            onMouseDown: dragStart
-        })}
-    </div>
+    return <>
+        <div
+            className={styles.dragBlock}
+            ref={blockRef}
+        >
+            {cloneElement(children, {
+                block,
+                isDrag: dragStarted,
+                onMouseDown: dragStart
+            })}
+        </div>
+        <div ref={blockPlaceholderRef} className={styles.dragBlockPlaceholder} />
+    </>
 }

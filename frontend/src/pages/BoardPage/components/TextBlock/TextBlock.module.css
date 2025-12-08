@@ -5,6 +5,7 @@
     border: 2px solid var(--color-primary);
     display: flex;
     flex-direction: column;
+    max-width: 400px;
 }
 
 .blockButton {
@@ -19,6 +20,17 @@
 
     transform: translate(-50%, -50%);
     cursor: move;
+}
+
+.blocked {
+    position: absolute;
+    top: 100%;
+    background-color: var(--color-primary);
+    padding: 4px 8px;
+    right: 8px;
+    color: white;
+    border-bottom-right-radius: .375rem;
+    border-bottom-left-radius: .375rem;
 }
 
 .text {

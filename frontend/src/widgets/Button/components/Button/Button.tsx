@@ -10,12 +10,17 @@ type ButtonProps = ButtonActionsProps & ClassNameProps & {
     fullsize?: boolean;
     outlined?: boolean;
     asSubmit?: boolean;
+    needUpdate?: boolean;
+    disabled?: boolean;
 }
 
 export function Button(props: ButtonProps) {
     const formContext = useContext(FormContext);
 
     const handleClick = useCallback((ev: MouseEvent) => {
+        if (props.needUpdate && !formContext.formUpdated) {
+            return;
+        }
         if (formContext && props.asSubmit) {
             formContext.onSubmit();
         }
@@ -30,6 +35,7 @@ export function Button(props: ButtonProps) {
             props.href && styles.href,
             props.className
         )}
+        disabled={props.needUpdate && !formContext.formUpdated || props.disabled}
         onClick={handleClick}
     >
         {props.title}

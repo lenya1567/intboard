@@ -1,5 +1,4 @@
 import BoardsIcon from "#assets/icons/boards.svg";
-import ProfileIcon from "#assets/icons/profile.svg";
 import LogoutIcon from "#assets/icons/logout.svg";
 import { useCallback, useContext, useState } from "react";
 import { SignOutModal } from "./components/SignOutModal/SignOutModal";
@@ -41,7 +40,6 @@ export function LoggedNavbar() {
 
         <NavBarBreak />
 
-        <NavbarItem title="Профиль" img={ProfileIcon} to="/profile" />
         <NavbarItem className={styles.last} danger title="Выйти из профиля" img={LogoutIcon} onClick={handleOpenSignOutModal} />
     </NavbarContainer>
 }

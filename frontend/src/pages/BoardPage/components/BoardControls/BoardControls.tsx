@@ -2,7 +2,7 @@ import styles from "./BoardControls.module.css";
 import AddIcon from "#assets/icons/add.svg";
 import PictureIcon from "#assets/icons/picture.svg";
 import type { ButtonActionsProps } from "#shared";
-import { useCallback, useContext, type MouseEvent } from "react";
+import { useCallback, useContext, useRef, type MouseEvent } from "react";
 import { ControlContext } from "../../model/ControlContext";
 import classNames from "classnames";
 
@@ -19,11 +19,20 @@ function BoardControlsButton({ name, nowName, imgSrc, onClick }: BoardControlsBu
 }
 
 export function BoardControls() {
-    const controlContext = useContext(ControlContext)
+    const controlContext = useContext(ControlContext);
+    const evListener = useRef(undefined);
+
+    const keyboardDown = useCallback((ev: any) => {
+        if (ev.key === "Escape") {
+            controlContext.actions.setControls(null);
+            window.removeEventListener('keyup', keyboardDown);
+        }
+    }, []);
 
     const handleControlClick = useCallback((ev: MouseEvent<HTMLDivElement>) => {
         controlContext.actions.setControls(ev.currentTarget.dataset.name!);
-    }, [controlContext]);
+        window.addEventListener('keyup', keyboardDown);
+    }, [controlContext, keyboardDown, evListener]);
 
     return <div className={styles.controls}>
         <BoardControlsButton

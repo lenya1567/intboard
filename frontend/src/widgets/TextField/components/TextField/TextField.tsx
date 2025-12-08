@@ -38,8 +38,8 @@ export function TextField(props: TextFieldProps) {
             </div>
             {
                 !props.textarea
-                    ? <input autoComplete={props.name} type={type} className={classNames(styles.input, props.className)} onChange={handleChange} />
-                    : <textarea autoComplete={props.name} className={classNames(styles.input, props.className)} onChange={handleChange} />
+                    ? <input defaultValue={formContext.form?.[props.name ?? ""]} autoComplete={props.name} type={type} className={classNames(styles.input, props.className)} onChange={handleChange} />
+                    : <textarea defaultValue={formContext.form?.[props.name ?? ""]} autoComplete={props.name} className={classNames(styles.input, props.className)} onChange={handleChange} />
             }
             {(formContext.errors[props.name ?? ""]) && <div className={styles.error}>
                 {typeof formContext.errors[props.name!] === 'boolean'

@@ -37,7 +37,6 @@
 @media(width <=1200px) {
     body {
         --orientation: column !important;
-        max-width: 500px;
     }
 
     .content {}

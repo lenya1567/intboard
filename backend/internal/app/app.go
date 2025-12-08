@@ -1,9 +1,13 @@
 package app
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
 	"inboard-server/config"
+	"inboard-server/pkg"
 	"inboard-server/pkg/vars"
+	"log"
 
 	authProvider "inboard-server/internal/provider/auth"
 	authTransport "inboard-server/internal/transport/auth"
@@ -16,6 +20,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/lib/pq"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/playwright-community/playwright-go"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -31,10 +38,43 @@ func CreateServer(config *config.ServerConfig) *echo.Echo {
 	server.Use(middleware.Recover())
 	server.Use(middleware.CORS())
 
+	minioClient, err := minio.New(config.Minio.EndPoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(config.Minio.AccessKey, config.Minio.SecretKey, ""),
+		Secure: false,
+	})
+	if err != nil {
+		log.Fatalf("Error initializing MinIO client: %v", err)
+	}
+
+	bucketName := "inboard-images"
+	err = minioClient.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{})
+	if err != nil {
+		exists, errBucketExists := minioClient.BucketExists(context.Background(), bucketName)
+		if errBucketExists == nil && exists {
+			log.Printf("Bucket '%s' already exists.", bucketName)
+		} else {
+			log.Fatalf("Error creating bucket '%s': %v", bucketName, err)
+		}
+	} else {
+		log.Printf("Successfully created bucket '%s'.", bucketName)
+	}
+
 	db, err := sql.Open("postgres", config.Database.String)
 	if err != nil {
 		server.Logger.Fatal(err)
 	}
+
+	pw, err := playwright.Run()
+	if err != nil {
+		server.Logger.Fatal(err)
+	}
+
+	browser, err := pw.Chromium.Launch()
+	if err != nil {
+		server.Logger.Fatal(err)
+	}
+
+	fmt.Print(pkg.GetConsoleMessage("PWS", "Playwrite server started", "OK"))
 
 	redisDB := redis.NewClient(config.RedisDatabase)
 
@@ -42,9 +82,9 @@ func CreateServer(config *config.ServerConfig) *echo.Echo {
 	authUsec := authUsecase.CreateAuthUsecase(authRepo, config)
 	authServ := authTransport.CreateAuthService(authUsec, config)
 
-	boardRepo := boardProvider.CreateBoardRepository(db, redisDB, config)
+	boardRepo := boardProvider.CreateBoardRepository(db, redisDB, config, minioClient)
 	boardUsec := boardUsecase.CreateBoardUsecase(boardRepo, config)
-	boardServ := boardTransport.CreateBoardService(boardUsec, config)
+	boardServ := boardTransport.CreateBoardService(&browser, boardUsec, config)
 
 	api := server.Group("/api")
 
@@ -55,9 +95,18 @@ func CreateServer(config *config.ServerConfig) *echo.Echo {
 	authGroup.POST("/signup", authServ.SignUpUser)
 	authGroup.DELETE("/logout", authServ.Logout)
 
+	fileGroup := api.Group("/files")
+	fileGroup.POST("/upload", boardServ.UploadBoardImage)
+
 	boardGroup := api.Group("/board", authServ.AuthMiddleware)
 	boardGroup.GET("/all", boardServ.BoardsList)
 	boardGroup.POST("/create", boardServ.CreateBoard)
+
+	boardGroup.GET("/export/:boardId", boardServ.ExportPDF)
+	boardGroup.GET("/link/:boardId", boardServ.GenerateInviteLink)
+	boardGroup.GET("/join/:boardId", boardServ.JoinBoardByLink)
+
+	boardGroup.GET("/:boardId", boardServ.GetBoard)
 	boardServ.ConnectWs(boardGroup)
 
 	return server

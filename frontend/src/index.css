@@ -68,6 +68,11 @@ body {
   font-size: 22px;
   line-height: 0;
   border-bottom: 2px solid transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .rsw-toolbar .rsw-btn img {

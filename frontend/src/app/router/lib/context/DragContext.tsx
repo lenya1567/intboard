@@ -1,7 +1,7 @@
 import { createContext, useMemo, useRef, useState, type MouseEvent, type PropsWithChildren, type RefObject } from "react";
 
 export interface DragContextProps {
-    boardRef?: RefObject<HTMLElement | null>;
+    boardRef?: RefObject<HTMLDivElement | null>;
     events?: { onMouseMove: (event: MouseEvent<HTMLElement>) => void, onMouseUp: (event: MouseEvent<HTMLElement>) => void };
     actions?: {
         move: (ctx: PositionProps, event: MouseEvent<HTMLElement>) => void,
@@ -29,6 +29,7 @@ export const DragContext = createContext<DragContextProps>({});
 export default function DragContextProvider(props: PropsWithChildren) {
     const [dragValue, setDragValue] = useState<DragContextProps>({});
 
+    const boardRef = useRef<HTMLDivElement>(null);
     const position = useRef<PositionProps>(null);
     const events = useRef<DragEvents>(null);
 
@@ -70,6 +71,7 @@ export default function DragContextProvider(props: PropsWithChildren) {
 
     const value = useMemo(() => ({
         ...dragValue,
+        boardRef,
         onStart
     }), [dragValue, onStart]);
 

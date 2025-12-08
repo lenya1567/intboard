@@ -12,6 +12,10 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/export': {
+        target: 'http://localhost:8080/api/board',
+        secure: false,
+      },
       '/api/board/ws': {
         target: 'ws://localhost:8080',
         ws: true,

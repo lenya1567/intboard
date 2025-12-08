@@ -4,7 +4,13 @@ export type BlockType = {
         x: number,
         y: number,
     },
-    value: string;
+    meta: {
+        width: number,
+        height: number,
+        type: string,
+    },
+    blockedBy?: string,
+    value?: string;
 }
 
 export type BlockDTO = {
@@ -12,12 +18,18 @@ export type BlockDTO = {
     x: number;
     y: number;
     data: string;
+    blocked: string;
 }
 
-export function createBlock(x: number, y: number): BlockType {
+export function createBlock(x: number, y: number, type: string): BlockType {
     return {
         id: "",
         position: { x: x - 200, y },
-        value: ""
+        value: "",
+        meta: {
+            width: 400,
+            height: 300,
+            type,
+        }
     }
 }

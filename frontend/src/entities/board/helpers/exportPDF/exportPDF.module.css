@@ -1,0 +1,40 @@
+.main {
+    position: relative;
+}
+
+.button {
+    position: absolute;
+    left: 50%;
+    width: 26px;
+    height: 26px;
+    border-radius: 13px;
+    background-color: black;
+    transform: translate(-50%, -50%);
+    top: 0;
+}
+
+.block {
+    position: absolute;
+    border-radius: 8px;
+    border: 2px solid black;
+    color: black;
+    padding: 16px;
+
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.block ul {
+    display: flex;
+    flex-direction: column;
+    list-style-type: none;
+    gap: 4px;
+}
+
+.block li::before {
+    content: "-";
+    align-items: center;
+    margin-right: 4px;
+}

@@ -1,22 +1,33 @@
-import { useCallback, useMemo, useState, type MouseEvent, type PropsWithChildren } from "react";
+import { useCallback, useEffect, useMemo, useState, type MouseEvent, type PropsWithChildren } from "react";
 import { FormContext } from "../../context/context";
 import { validateValue, type ClassNameProps, type ValidationType } from "#shared";
 
 type FormProps = PropsWithChildren & ClassNameProps & {
+    defaultValue?: Record<string, string>;
     onSubmit: (form: Record<string, string>) => Promise<Record<string, boolean | string | undefined> | void>;
 }
 
 export function Form(props: FormProps) {
     const [form, setForm] = useState<Record<string, string>>({});
+    const [formUpdated, setFormUpdated] = useState(false);
     const [validations, setValidations] = useState<Record<string, ValidationType>>({});
     const [errors, setErrors] = useState<Record<string, string | boolean | undefined>>({});
 
+    useEffect(() => {
+        if (props.defaultValue) {
+            setForm(props.defaultValue);
+        }
+    }, [props.defaultValue]);
+
     const handleUpdate = useCallback((field: string, value: string) => {
+        if (form[field] !== value) {
+            setFormUpdated(true);
+        }
         setForm(prev => ({
             ...prev,
             [field]: value
         }));
-    }, [setForm]);
+    }, [form, setForm]);
 
     const handleSetValidation = useCallback((field: string, validation: ValidationType) => {
         setValidations(prev => ({
@@ -49,12 +60,13 @@ export function Form(props: FormProps) {
     const preventDefault = useCallback((ev: MouseEvent<HTMLFormElement>) => ev.preventDefault(), [])
 
     const value = useMemo(() => ({
+        formUpdated,
         errors,
         form,
         setForm: handleUpdate,
         setFieldValidation: handleSetValidation,
         onSubmit: handleSubmit
-    }), [errors, form, handleUpdate, handleSetValidation, handleSubmit]);
+    }), [formUpdated, errors, form, handleUpdate, handleSetValidation, handleSubmit]);
 
     return <FormContext.Provider value={value}>
         <form className={props.className} onSubmit={preventDefault}>

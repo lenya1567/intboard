@@ -14,3 +14,8 @@ type Board struct {
 type BoardRedis struct {
 	Blocks []string `json:"blocks"`
 }
+
+type BoardDescription struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}

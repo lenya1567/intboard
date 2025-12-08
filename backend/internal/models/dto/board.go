@@ -17,3 +17,8 @@ type CreateBoardDTO struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
+
+type BoardDescriptionDTO struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}

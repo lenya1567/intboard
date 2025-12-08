@@ -1,3 +1,15 @@
 .dragBlock {
     position: absolute;
+    transform: translate(0, 0);
+    width: 400px;
+    min-height: 300px;
+    z-index: 2;
+}
+
+.dragBlockPlaceholder {
+    position: absolute;
+    transform: translate(0, 0);
+    width: 400px;
+    min-height: 300px;
+    z-index: -1;
 }

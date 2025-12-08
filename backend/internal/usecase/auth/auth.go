@@ -11,7 +11,7 @@ import (
 
 type IAuthUsecase interface {
 	GetMe(req echo.Context, sessionId string) (dto.UserDTO, error)
-	GetUserBySession(req echo.Context, sessionId string) (string, error)
+	GetUserBySession(req echo.Context, sessionId string) (string, string, error)
 	UpdateUser(req echo.Context, sessionId string, user *dto.UserDataChangeDTO) error
 	SignUpUser(req echo.Context, user *dto.SignUpDTO) (string, error)
 	SignInUser(req echo.Context, user *dto.SignInDTO) (string, error)
@@ -74,14 +74,14 @@ func (usec *AuthUsecase) GetMe(req echo.Context, sessionId string) (dto.UserDTO,
 	return dto.UserDTO{DisplayName: user.DisplayName, Login: user.Login}, nil
 }
 
-func (usec *AuthUsecase) GetUserBySession(req echo.Context, sessionId string) (string, error) {
-	userId, err := usec.rep.GetUserIdBySession(req, sessionId)
+func (usec *AuthUsecase) GetUserBySession(req echo.Context, sessionId string) (string, string, error) {
+	userId, userLogin, err := usec.rep.GetUserIdBySession(req, sessionId)
 
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return userId, nil
+	return userId, userLogin, nil
 }
 
 func (usec *AuthUsecase) UpdateUser(req echo.Context, sessionId string, user *dto.UserDataChangeDTO) error {

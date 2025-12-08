@@ -27,10 +27,6 @@ export function Modal(props: ModalProps) {
         }
     }, [])
 
-    if (props.opened) {
-        console.log(props, classNames(styles.content, props.className));
-    }
-
     return (
         <div className={classNames(styles.modal, props.opened && styles.opened, modalState)}>
             <div className={styles.tint} onClick={handleClose} />

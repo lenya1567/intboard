@@ -1,16 +1,12 @@
 .board {
-    position: relative;
+    position: fixed;
 
     width: 100vw;
     height: 100vh;
-
-    background-color: white;
-    background-image: radial-gradient(circle at 2px 2px, #CCC 1px, #0000 0);
-    background-position: 12px 12px;
-    background-size: 25px 25px;
 }
 
 .content {
     position: relative;
     flex-grow: 1;
+    display: flex;
 }

@@ -1,4 +1,35 @@
 services:
+  frontend:
+    build:
+      context: ../frontend/
+      dockerfile: Dockerfile
+    container_name: inboard-ui
+    depends_on:
+      - inboard-backend
+    ports:
+      - "80:80"
+    networks:
+      - inboard-network
+
+  inboard-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: lepeshka2024/inboard-backend
+    container_name: inboard-backend
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    volumes:
+      - ./.env:/app/.env
+    networks:
+      - inboard-network
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    command: sh -c "while ! nc -z redis ${REDIS_PORT}; do sleep 2; done && /usr/local/bin/goose -dir db/migrations up && ./main"
+      
   redis:
     image: redis:latest
     restart: always
@@ -6,13 +37,20 @@ services:
       - "${REDIS_PORT}:${REDIS_PORT}"
     volumes:
       - redis_data:/root/redis
+    networks:
+      - inboard-network
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_PORT=${REDIS_PORT}
       - REDIS_DATABASE=${REDIS_DATABASE}
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   postgres:
-    image: postgres:latest
+    image: postgres:17
     container_name: inboard_db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -22,6 +60,8 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - inboard-network
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 30s
@@ -30,6 +70,10 @@ services:
     restart: unless-stopped
     tty: true
     stdin_open: true
+
+networks:
+  inboard-network:
+    driver: bridge
 
 volumes:
   postgres_data:

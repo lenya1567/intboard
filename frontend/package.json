@@ -40,6 +40,9 @@
     "typescript-eslint": "^8.39.1",
     "vite": "^7.1.2"
   },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-musl": "^4.9.5"
+  },
   "imports": {
     "#app/*": "./src/app/*/index.ts",
     "#entities/*": "./src/entities/*/index.ts",

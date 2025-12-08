@@ -1,6 +1,7 @@
 package board
 
 import (
+	"crypto/md5"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -8,6 +9,10 @@ import (
 	"inboard-server/internal/models/dto"
 	"inboard-server/internal/models/models"
 	"inboard-server/pkg/vars"
+	"mime"
+	"mime/multipart"
+	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -15,6 +20,7 @@ import (
 	"github.com/jaevor/go-nanoid"
 	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
+	"github.com/minio/minio-go/v7"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -23,14 +29,26 @@ type IBoardRepository interface {
 	CreateBoard(req echo.Context, userId string, board dto.CreateBoardDTO) (string, error)
 	CreateBoardMember(req echo.Context, userId string, boardId string, role int) (string, error)
 	CreateBoardBlock(boardId string, blockData models.Block) (dto.Block, error)
+
+	CheckBoardMember(req echo.Context, userId string, boardId string) (bool, error)
+	GetBoard(req echo.Context, userId string, boardId string) (models.BoardDescription, error)
+	UpdateBoard(req echo.Context, boardId string, board dto.BoardDescriptionDTO) error
 	GetBoardBlocks(boardId string) ([]dto.Block, error)
-	MoveBlock(userId string, blockId string, blockData dto.MoveBlockActionDTO) (dto.Block, error)
-	UpdateBlock(userId string, blockId string, blockData dto.UpdateBlockActionDTO) (dto.Block, error)
+
+	MoveBlock(userId string, userLogin string, blockId string, blockData dto.MoveBlockActionDTO) (dto.Block, error)
+	UpdateBlock(userId string, userLogin string, blockId string, blockData dto.UpdateBlockActionDTO) (dto.Block, error)
+	RemoveBlock(boardId string, blockId string) error
+	ClearBlockOfBlock(userId string, userLogin string, blockId string) error
+
+	UploadBoardImage(req echo.Context, file *multipart.FileHeader) (string, error)
+
+	GenerateInviteLink(req echo.Context, userId string, boardId string) (string, error)
 }
 
 type BoardRepositoryMutex struct {
-	addBlock  sync.Mutex
-	moveBlock sync.Mutex
+	addBlock    sync.Mutex
+	moveBlock   sync.Mutex
+	removeBlock sync.Mutex
 }
 
 type BoardRepository struct {
@@ -38,14 +56,16 @@ type BoardRepository struct {
 	mutex   *BoardRepositoryMutex
 	redisDB *redis.Client
 	config  *config.ServerConfig
+	minio   *minio.Client
 }
 
-func CreateBoardRepository(db *sql.DB, redisDB *redis.Client, config *config.ServerConfig) *BoardRepository {
+func CreateBoardRepository(db *sql.DB, redisDB *redis.Client, config *config.ServerConfig, minio *minio.Client) *BoardRepository {
 	mutex := &BoardRepositoryMutex{
-		addBlock:  sync.Mutex{},
-		moveBlock: sync.Mutex{},
+		addBlock:    sync.Mutex{},
+		moveBlock:   sync.Mutex{},
+		removeBlock: sync.Mutex{},
 	}
-	return &BoardRepository{db: db, redisDB: redisDB, config: config, mutex: mutex}
+	return &BoardRepository{db: db, redisDB: redisDB, config: config, mutex: mutex, minio: minio}
 }
 
 func (repo *BoardRepository) CreateBoard(req echo.Context, userId string, board dto.CreateBoardDTO) (string, error) {
@@ -133,6 +153,59 @@ func (repo *BoardRepository) BoardsList(req echo.Context, userId string) ([]mode
 	return boards, nil
 }
 
+func (repo *BoardRepository) CheckBoardMember(req echo.Context, userId string, boardId string) (bool, error) {
+	var memberId string
+	row := repo.db.QueryRow(
+		"SELECT BM.id FROM project.board_member as BM WHERE BM.user_id = $1 AND BM.board_id = $2",
+		userId, boardId,
+	)
+
+	err := row.Scan(&memberId)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (repo *BoardRepository) GetBoard(req echo.Context, userId string, boardId string) (models.BoardDescription, error) {
+	var board models.BoardDescription
+	row := repo.db.QueryRow(
+		"SELECT B.name, B.description FROM project.board as B WHERE B.id = $1",
+		boardId,
+	)
+
+	err := row.Scan(&board.Name, &board.Description)
+	if err == sql.ErrNoRows {
+		return models.BoardDescription{}, nil
+	}
+
+	if err != nil {
+		return models.BoardDescription{}, err
+	}
+
+	return board, nil
+}
+
+func (repo *BoardRepository) UpdateBoard(req echo.Context, boardId string, board dto.BoardDescriptionDTO) error {
+	row := repo.db.QueryRow(
+		"UPDATE project.board as B SET name = $2, description = $3 WHERE B.id = $1",
+		boardId, board.Name, board.Description,
+	)
+
+	fmt.Println("Update", boardId, board.Name, board.Description)
+
+	if row.Err() != nil {
+		return row.Err()
+	}
+
+	return nil
+}
+
 func (repo *BoardRepository) AddBlockToBoard(boardId string, blockId string) error {
 	repo.mutex.addBlock.Lock()
 
@@ -141,19 +214,9 @@ func (repo *BoardRepository) AddBlockToBoard(boardId string, blockId string) err
 		Blocks: make([]string, 0),
 	}
 
-	if repo.redisDB.Exists(vars.RedisContext, boardKey).Err() == nil {
-		boardData, _ := repo.redisDB.Get(vars.RedisContext, boardKey).Bytes()
-		json.Unmarshal(boardData, &prevBoardDate)
-	}
-
 	prevBoardDate.Blocks = append(prevBoardDate.Blocks, blockId)
 
-	newData, err := json.Marshal(prevBoardDate)
-	if err != nil {
-		return err
-	}
-
-	errR := repo.redisDB.Set(vars.RedisContext, boardKey, newData, time.Duration(time.Hour*2400))
+	errR := repo.redisDB.RPush(vars.RedisContext, boardKey, prevBoardDate.Blocks)
 	if errR.Err() != nil {
 		return errR.Err()
 	}
@@ -171,8 +234,7 @@ func (repo *BoardRepository) CreateBoardBlock(boardId string, blockData models.B
 	}
 
 	blockRedisData := models.BlockModel{}
-	blockRedisData.Type = "text"
-	blockRedisData.Data = ""
+	blockRedisData.Data = blockData.Data
 	blockRedisData.Moving = ""
 	blockRedisData.PosX = blockData.PosX
 	blockRedisData.PosY = blockData.PosY
@@ -193,25 +255,20 @@ func (repo *BoardRepository) CreateBoardBlock(boardId string, blockData models.B
 		Id:   blockId,
 		PosX: blockData.PosX,
 		PosY: blockData.PosY,
+		Data: blockData.Data,
 	}, nil
 }
 
 func (repo *BoardRepository) GetBoardBlocks(boardId string) ([]dto.Block, error) {
 	boardKey := "board:" + boardId
 
-	boardData, err := repo.redisDB.Get(vars.RedisContext, boardKey).Bytes()
-	if err != nil {
-		return make([]dto.Block, 0), nil
-	}
-
-	board := models.BoardRedis{}
-	err = json.Unmarshal(boardData, &board)
+	blocksIDs, err := repo.redisDB.LRange(vars.RedisContext, boardKey, 0, -1).Result()
 	if err != nil {
 		return nil, err
 	}
 
 	blocks := make([]dto.Block, 0)
-	for _, blockId := range board.Blocks {
+	for _, blockId := range blocksIDs {
 		blockKey := "block:" + blockId
 		blockData, err := repo.redisDB.Get(vars.RedisContext, blockKey).Bytes()
 
@@ -227,10 +284,11 @@ func (repo *BoardRepository) GetBoardBlocks(boardId string) ([]dto.Block, error)
 	return blocks, nil
 }
 
-func (repo *BoardRepository) MoveBlock(userId string, blockId string, blockData dto.MoveBlockActionDTO) (dto.Block, error) {
+func (repo *BoardRepository) MoveBlock(userId string, userLogin string, blockId string, blockData dto.MoveBlockActionDTO) (dto.Block, error) {
 	repo.mutex.moveBlock.Lock()
 
 	blockKey := "block:" + blockId
+	userKey := userId + "#" + userLogin
 
 	if repo.redisDB.Exists(vars.RedisContext, blockKey).Err() != nil {
 		return dto.Block{}, nil
@@ -244,11 +302,13 @@ func (repo *BoardRepository) MoveBlock(userId string, blockId string, blockData 
 		return dto.Block{}, err
 	}
 
-	if boardStruct.Moving != "" && boardStruct.Moving != userId {
+	if boardStruct.Moving != "" && boardStruct.Moving != userKey {
+		repo.mutex.moveBlock.Unlock()
 		return dto.Block{
-			Id:   blockId,
-			PosX: boardStruct.PosX,
-			PosY: boardStruct.PosY,
+			Id:        blockId,
+			PosX:      boardStruct.PosX,
+			PosY:      boardStruct.PosY,
+			BlockedBy: strings.Split(boardStruct.Moving, "#")[1],
 		}, nil
 	}
 
@@ -256,18 +316,20 @@ func (repo *BoardRepository) MoveBlock(userId string, blockId string, blockData 
 	boardStruct.PosY = blockData.PosY
 
 	if blockData.Moving {
-		boardStruct.Moving = userId
+		boardStruct.Moving = userKey
 	} else {
 		boardStruct.Moving = ""
 	}
 
 	blockDataRaw, err := json.Marshal(boardStruct)
 	if err != nil {
+		repo.mutex.moveBlock.Unlock()
 		return dto.Block{}, err
 	}
 
 	errR := repo.redisDB.Set(vars.RedisContext, blockKey, blockDataRaw, time.Duration(time.Hour*2400))
 	if errR.Err() != nil {
+		repo.mutex.moveBlock.Unlock()
 		return dto.Block{}, errR.Err()
 	}
 
@@ -279,10 +341,11 @@ func (repo *BoardRepository) MoveBlock(userId string, blockId string, blockData 
 	}, nil
 }
 
-func (repo *BoardRepository) UpdateBlock(userId string, blockId string, blockData dto.UpdateBlockActionDTO) (dto.Block, error) {
+func (repo *BoardRepository) UpdateBlock(userId string, userLogin string, blockId string, blockData dto.UpdateBlockActionDTO) (dto.Block, error) {
 	repo.mutex.moveBlock.Lock()
 
 	blockKey := "block:" + blockId
+	userKey := userId + "#" + userLogin
 
 	if repo.redisDB.Exists(vars.RedisContext, blockKey).Err() != nil {
 		return dto.Block{}, nil
@@ -295,7 +358,26 @@ func (repo *BoardRepository) UpdateBlock(userId string, blockId string, blockDat
 		return dto.Block{}, err
 	}
 
-	boardStruct.Data = blockData.NewData
+	if boardStruct.Moving != "" && boardStruct.Moving != userKey {
+		repo.mutex.moveBlock.Unlock()
+		return dto.Block{
+			Id:        blockId,
+			PosX:      boardStruct.PosX,
+			PosY:      boardStruct.PosY,
+			Data:      boardStruct.Data,
+			BlockedBy: strings.Split(boardStruct.Moving, "#")[1],
+		}, nil
+	}
+
+	if blockData.NewData != "" {
+		boardStruct.Data = blockData.NewData
+	}
+
+	if blockData.Moving {
+		boardStruct.Moving = userKey
+	} else {
+		boardStruct.Moving = ""
+	}
 
 	blockDataRaw, err := json.Marshal(boardStruct)
 	if err != nil {
@@ -314,4 +396,107 @@ func (repo *BoardRepository) UpdateBlock(userId string, blockId string, blockDat
 		PosY: boardStruct.PosY,
 		Data: boardStruct.Data,
 	}, nil
+}
+
+func (repo *BoardRepository) ClearBlockOfBlock(userId string, userLogin string, blockId string) error {
+	repo.mutex.moveBlock.Lock()
+
+	blockKey := "block:" + blockId
+	userKey := userId + "#" + userLogin
+
+	if repo.redisDB.Exists(vars.RedisContext, blockKey).Err() != nil {
+		return nil
+	}
+
+	boardStruct := models.BlockModel{}
+	boardData, _ := repo.redisDB.Get(vars.RedisContext, blockKey).Bytes()
+	err := json.Unmarshal(boardData, &boardStruct)
+	if err != nil {
+		return err
+	}
+
+	if boardStruct.Moving != "" && boardStruct.Moving != userKey {
+		repo.mutex.moveBlock.Unlock()
+		return nil
+	}
+
+	boardStruct.Moving = ""
+
+	blockDataRaw, err := json.Marshal(boardStruct)
+	if err != nil {
+		return err
+	}
+
+	errR := repo.redisDB.Set(vars.RedisContext, blockKey, blockDataRaw, time.Duration(time.Hour*2400))
+	if errR.Err() != nil {
+		return errR.Err()
+	}
+
+	repo.mutex.moveBlock.Unlock()
+	return nil
+}
+
+func (repo *BoardRepository) RemoveBlock(boardId string, blockId string) error {
+	repo.mutex.removeBlock.Lock()
+
+	blockKey := "block:" + blockId
+	boardKey := "board:" + boardId
+
+	err := repo.redisDB.Del(vars.RedisContext, blockKey)
+	if err.Err() != nil {
+		return err.Err()
+	}
+
+	_, redErr := repo.redisDB.LRem(vars.RedisContext, boardKey, 1, blockId).Result()
+	if redErr != nil {
+		return redErr
+	}
+
+	repo.mutex.removeBlock.Unlock()
+	return nil
+}
+
+func (repo *BoardRepository) UploadBoardImage(req echo.Context, file *multipart.FileHeader) (string, error) {
+	uuid := uuid.New()
+	key := uuid.String() + filepath.Ext(file.Filename)
+
+	reader, err := file.Open()
+	if err != nil {
+		return "", err
+	}
+
+	fileType := mime.TypeByExtension(filepath.Ext(file.Filename))
+
+	_, err = repo.minio.PutObject(vars.MinioContext, vars.BacketName, key, reader, file.Size, minio.PutObjectOptions{ContentType: fileType})
+	if err != nil {
+		return "", err
+	}
+
+	link := fmt.Sprintf("%s/%s/%s", repo.config.Minio.PublicPath, vars.BacketName, key)
+	return link, nil
+}
+
+func (repo *BoardRepository) GenerateInviteLink(req echo.Context, userId string, boardId string) (string, error) {
+	var boardSecretKey string
+	row := repo.db.QueryRow(
+		"SELECT B.secret_key FROM project.board as B WHERE B.id = $1",
+		boardId,
+	)
+
+	err := row.Scan(&boardSecretKey)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	h := md5.New()
+	h.Write([]byte(boardId))
+	h.Write([]byte(repo.config.KeySecret))
+	h.Write([]byte(boardSecretKey))
+
+	key := fmt.Sprintf("%x", h.Sum(nil))
+	return key, nil
 }

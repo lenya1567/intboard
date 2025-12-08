@@ -21,11 +21,10 @@ export function WelcomePage() {
             <div className={styles.content}>
                 <div className={styles.overview}>
                     Создайте&#32;
-                    <Link to='new_board' className={styles.link}>Интерактивную&nbsp;доску</Link>,<br />
+                    <Link to='/boards?create=true' className={styles.link}>Интерактивную&nbsp;доску</Link>,<br />
                     чтобы показывать и обсуждать свои идеи в команде!
                     <div className={styles.action}>
                         <Button title="Создать доску" />
-                        <Button outlined title="Присоединится к команде" />
                     </div>
                 </div>
                 <div className={styles.present}>

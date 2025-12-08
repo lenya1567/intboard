@@ -1,10 +1,11 @@
 package dto
 
 type Block struct {
-	Id   string `json:"id"`
-	PosX int    `json:"x"`
-	PosY int    `json:"y"`
-	Data string `json:"data,omitempty"`
+	Id        string `json:"id"`
+	PosX      int    `json:"x"`
+	PosY      int    `json:"y"`
+	Data      string `json:"data,omitempty"`
+	BlockedBy string `json:"blocked"`
 }
 
 type UpdatedBlockDTO struct {
@@ -21,4 +22,5 @@ type MoveBlockActionDTO struct {
 
 type UpdateBlockActionDTO struct {
 	NewData string `json:"newData"`
+	Moving  bool   `json:"moving"`
 }

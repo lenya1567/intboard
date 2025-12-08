@@ -15,7 +15,7 @@ import (
 type IAuthRepository interface {
 	GetUser(req echo.Context, user *dto.SignInDTO) (string, error)
 	GetUserBySession(req echo.Context, sessionId string) (models.UserModel, error)
-	GetUserIdBySession(req echo.Context, sessionId string) (string, error)
+	GetUserIdBySession(req echo.Context, sessionId string) (string, string, error)
 	UpdateUserBySession(req echo.Context, sessionId string, user *dto.UserDataChangeDTO) error
 	UserExists(req echo.Context, user *dto.SignUpDTO) (bool, error)
 	CreateUser(req echo.Context, user *dto.SignUpDTO) (string, error)
@@ -86,23 +86,24 @@ func (repo *AuthRepository) GetUserBySession(req echo.Context, sessionId string)
 	return user, nil
 }
 
-func (repo *AuthRepository) GetUserIdBySession(req echo.Context, sessionId string) (string, error) {
+func (repo *AuthRepository) GetUserIdBySession(req echo.Context, sessionId string) (string, string, error) {
 	var userId string
+	var userLogin string
 	row := repo.db.QueryRow(
-		"SELECT U.id FROM project.user as U, project.user_session as SU WHERE SU.id = $1 AND SU.user_id = U.id",
+		"SELECT U.id, U.name FROM project.user as U, project.user_session as SU WHERE SU.id = $1 AND SU.user_id = U.id",
 		sessionId,
 	)
 
-	err := row.Scan(&userId)
+	err := row.Scan(&userId, &userLogin)
 	if err == sql.ErrNoRows {
-		return "", vars.ErrUserNotFound
+		return "", "", vars.ErrUserNotFound
 	}
 
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return userId, nil
+	return userId, userLogin, nil
 }
 
 func (repo *AuthRepository) UpdateUserBySession(req echo.Context, sessionId string, user *dto.UserDataChangeDTO) error {

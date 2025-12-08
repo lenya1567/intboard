@@ -32,3 +32,7 @@ export function typeByValidation(validation?: ValidationType) {
     }
     return "text";
 }
+
+export function printLogs(...args: any) {
+    console.log(...args);
+}

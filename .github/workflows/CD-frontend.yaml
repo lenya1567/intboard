@@ -1,4 +1,4 @@
-name: deploy
+name: deploy-frontend
 on:
   push:
     paths:
@@ -12,7 +12,7 @@ jobs:
   build-and-push:
     name: build
     runs-on: ubuntu-latest
-    steps:
+    steps:  
       - name: checkout
         uses: actions/checkout@v4
       - name: Set up QEMU
@@ -34,3 +34,4 @@ jobs:
           build-args: |
             IMAGE_NAME=${{ env.IMAGE_NAME }}
             REGISTRY=${{ env.REGISTRY }} 
+      - anme  

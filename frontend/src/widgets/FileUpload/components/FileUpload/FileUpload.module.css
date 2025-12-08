@@ -1,0 +1,25 @@
+.file {
+    display: none;
+    position: absolute;
+    z-index: -1;
+}
+
+.upload {
+    position: relative;
+    display: flex;
+}
+
+.uploader {
+    width: 100%;
+
+    border: 1px solid lightgray;
+    border-radius: 16px;
+    padding: 16px;
+
+    font-size: 20px;
+    font-family: inherit;
+
+    outline: none;
+    resize: none;
+    overflow: auto;
+}

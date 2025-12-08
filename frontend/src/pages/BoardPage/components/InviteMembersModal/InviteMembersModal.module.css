@@ -1,0 +1,32 @@
+.header {
+    font-size: 32px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1;
+    margin-bottom: 24px;
+}
+
+.description {
+    margin-bottom: 8px;
+    font-size: 20px;
+    font-family: inherit;
+    color: gray;
+}
+
+.button {
+    margin-top: 24px;
+    width: 100%;
+}
+
+.link {
+    border: 1px solid lightgray;
+    border-radius: 16px;
+    padding: 16px;
+
+    font-size: 20px;
+    font-family: inherit;
+
+    outline: none;
+    resize: none;
+    overflow: auto;
+}

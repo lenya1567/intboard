@@ -4,6 +4,7 @@ import { WelcomePage } from '#pages/WelcomePage';
 import { BoardsListPage } from '#pages/BoardsListPage';
 import { BoardPage } from '#pages/BoardPage';
 import './index.css';
+import { JoinPage } from '#pages/JoinPage';
 
 export function AppWithRoutes() {
     return (
@@ -14,6 +15,7 @@ export function AppWithRoutes() {
                         <Route path="" element={<WelcomePage />} />
                         <Route path="/boards" element={<BoardsListPage />} />
                         <Route path="/board/:id" element={<BoardPage />} />
+                        <Route path="/join/:id" element={<JoinPage />} />
                     </Routes>
                 </BrowserRouter>
             </ContextProvider>

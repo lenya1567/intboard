@@ -15,12 +15,17 @@
     cursor: pointer;
 }
 
-.button:hover {
+.button:hover:not(:disabled) {
     background-color: var(--color-primary-dark);
 }
 
-.button:active {
+.button:active:not(:disabled) {
     background-color: var(--color-primary-dark-active);
+}
+
+.button:disabled {
+    cursor: no-drop;
+    opacity: 0.7;
 }
 
 .fullsize {
@@ -33,14 +38,19 @@
     border: 2px solid var(--color-primary);
 }
 
-.outlined:hover {
+.outlined:hover:not(:disabled) {
     background-color: inherit;
     color: var(--color-primary-dark);
     border: 2px solid var(--color-primary-dark);
 }
 
-.outlined:active {
+.outlined:active:not(:disabled) {
     background-color: var(--color-text);
+}
+
+.outlined:disabled {
+    cursor: no-drop;
+    opacity: 0.7;
 }
 
 .href {

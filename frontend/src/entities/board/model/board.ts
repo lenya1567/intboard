@@ -1,11 +1,14 @@
-import { connectWebSocket } from "#shared";
+import { connectWebSocket, Errors, printLogs } from "#shared";
 import type { Socket } from "socket.io-client";
 import type { BlockDTO, BlockType } from "../api/block";
 import { convertBlockDtoToModel } from "../helpers/convertBlockDtoToModel";
+import { getBoard, type BoardDescription } from "../api/board";
+import { getDataWithMeta } from "../helpers/getDataWithMeta";
 
 interface BoardCallbacks {
     onAllBlocks: ((blocks: BlockType[]) => void);
     onNewBlock: ((block: BlockType) => void);
+    onRemoveBlock: ((id: string) => void);
 }
 
 interface BoardSubscribtions {
@@ -23,11 +26,14 @@ export const BoardAction = {
 type BoardAction = keyof typeof BoardAction;
 
 export class Board {
+    id?: string;
     ws?: Socket;
     blocks?: any[];
     subscribtions: BoardSubscribtionsValue = {
         blockUpdate: {}
-    }
+    };
+
+    description?: BoardDescription;
 
     subscribe: BoardSubscribtions = {
         onUpdateBlock: (blockId, callbackType, callback) => {
@@ -42,7 +48,16 @@ export class Board {
         Object.values(this.subscribtions[name][id] ?? {}).forEach((callback) => callback(...args));
     }
 
-    initBoard(id: string, callbacks: BoardCallbacks) {
+    async initBoard(id: string, callbacks: BoardCallbacks) {
+        const boardDescription = await getBoard(id);
+        if (boardDescription.error !== Errors.NoError) {
+            printLogs("Получение доски. Ошибка:", boardDescription.error);
+            return false;
+        }
+
+        this.id = id;
+        this.description = boardDescription.data;
+
         this.ws = connectWebSocket("/board/ws/" + id);
 
         this.ws.on("error", (...data) => {
@@ -60,13 +75,32 @@ export class Board {
         this.ws.on("update-block", (block: BlockDTO) => {
             this.sendMessage("blockUpdate", block.id, convertBlockDtoToModel(block));
         });
+
+        this.ws.on("remove-block", (id: string) => {
+            callbacks.onRemoveBlock(id);
+        });
+
+        return true;
     }
 
-    createBlock({ x, y }: { x: number, y: number }) {
-        this.ws?.emit("create-block", JSON.stringify({ x, y }))
+    async updateBoardInformation(newDescription: BoardDescription) {
+        this.description = newDescription;
+        this.ws?.emit("update-information", JSON.stringify(newDescription));
+    }
+
+    createBlock(block: BlockType) {
+        this.ws?.emit("create-block", JSON.stringify({
+            x: block.position.x,
+            y: block.position.y,
+            data: getDataWithMeta(block.value!, block)
+        }));
     }
 
     updateBlock({ id, action, data }: { id: string, action: BoardAction, data: string }) {
         this.ws?.emit("update-block", JSON.stringify({ id, action, data }));
+    }
+
+    removeBlock({ id }: { id: string }) {
+        this.ws?.emit("remove-block", JSON.stringify({ id }));
     }
 }

@@ -12,9 +12,11 @@ type ServerConfig struct {
 	IP             string
 	Port           string
 	PasswordSecret string
+	KeySecret      string
 
 	Database      *DBConfig
 	RedisDatabase *redis.Options
+	Minio         *MinioConfig
 }
 
 type DBConfig struct {
@@ -23,6 +25,13 @@ type DBConfig struct {
 	Password string
 	Name     string
 	String   string
+}
+
+type MinioConfig struct {
+	EndPoint   string
+	AccessKey  string
+	SecretKey  string
+	PublicPath string
 }
 
 func init() {
@@ -36,6 +45,7 @@ func CreateServerConfig() *ServerConfig {
 	ip := os.Getenv("SERVER_IP")
 	port := os.Getenv("SERVER_PORT")
 	secret := os.Getenv("PASSWORD_SECRET")
+	key := os.Getenv("KEY_SECRET")
 
 	if ip == "" {
 		panic("No SERVER_IP in .env!")
@@ -49,9 +59,14 @@ func CreateServerConfig() *ServerConfig {
 		panic("No PASSWORD_SECRET in .env!")
 	}
 
+	if secret == "" {
+		panic("No KEY_SECRET in .env!")
+	}
+
 	dbConfig := createDBConfig()
 	redisConfig := createRedisDBConfig()
-	return &ServerConfig{IP: ip, Port: port, PasswordSecret: secret, Database: dbConfig, RedisDatabase: redisConfig}
+	minioConfig := createMinioConfig()
+	return &ServerConfig{IP: ip, Port: port, PasswordSecret: secret, KeySecret: key, Database: dbConfig, RedisDatabase: redisConfig, Minio: minioConfig}
 }
 
 func createDBConfig() *DBConfig {
@@ -107,5 +122,35 @@ func createRedisDBConfig() *redis.Options {
 	return &redis.Options{
 		Addr:     "localhost:" + dbPort,
 		Password: dbPassword,
+	}
+}
+
+func createMinioConfig() *MinioConfig {
+	endPoint := os.Getenv("MINIO_ENDPOINT")
+	accessKey := os.Getenv("MINIO_ACCESS_KEY")
+	secretKey := os.Getenv("MINIO_SECRET_KEY")
+	publicPath := os.Getenv("MINIO_PUBLIC")
+
+	if endPoint == "" {
+		panic("No MINIO_ENDPOINT in .env!")
+	}
+
+	if accessKey == "" {
+		panic("No MINIO_ACCESS_KEY in .env!")
+	}
+
+	if secretKey == "" {
+		panic("No MINIO_SECRET_KEY in .env!")
+	}
+
+	if secretKey == "" {
+		panic("No MINIO_PUBLIC in .env!")
+	}
+
+	return &MinioConfig{
+		EndPoint:   endPoint,
+		AccessKey:  accessKey,
+		SecretKey:  secretKey,
+		PublicPath: publicPath,
 	}
 }

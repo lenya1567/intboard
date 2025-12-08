@@ -1,6 +1,6 @@
 .nav {
     position: relative;
-    z-index: 2;
+    z-index: 3;
     background-color: white;
     border-right: 1px solid lightgray;
     display: flex;

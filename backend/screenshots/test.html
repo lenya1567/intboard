@@ -1,0 +1,81 @@
+<html>
+	<head>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				font-family: "Noto Sans", system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+				font-synthesis: none;
+				text-rendering: optimizeLegibility;
+				-webkit-font-smoothing: antialiased;
+				-moz-osx-font-smoothing: grayscale;
+			}
+
+			h1 {
+				font-weight: bold;
+				padding: 32px;
+				padding-bottom: 0;
+			}
+
+			h2 {
+				font-weight: 300;
+				color: lightgray;
+				padding: 32px;
+				padding-top: 0;
+			}
+			
+			hr {
+				border: 0.5px solid lightgray
+			}
+
+			.main {
+				position: relative;
+				margin: 32px;
+			}
+
+			.image-block, .block {
+				position: absolute;
+				border-radius: 8px;
+				border: 2px solid black;
+				color: black;
+				min-width: 400px;
+
+				box-sizing: border-box;
+				display: flex;
+				flex-direction: column;
+				gap: 4px;
+
+				background-color: white;
+				overflow: hidden;
+
+				overflow-wrap: break-word;
+			}
+
+			.block {
+				padding: 16px;
+			}
+
+			.block ul {
+				display: flex;
+				flex-direction: column;
+				list-style-type: none;
+				gap: 4px;
+			}
+
+			.block li::before {
+				content: "-";
+				align-items: center;
+				margin-right: 4px;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Прикольная доска</h1>		<h2>Тестовая доска для моей курсовой</h2>		<hr />		<div class="main">
+			<div class="block" style="left: 20315px; top: 88px; max-width: 400px; min-height: 300px"><br></div>
+			<div class="block" style="left: 20875px; top: 924px; max-width: 400px; min-height: 300px">3e3e3e23e3e2e23e23e23eqweeqwe</div>
+			<div class="image-block" style="left: 0px; top: 3310px; max-width: 400px;"><img src="https://static.studtrain.ru/inboard-images/aea69efa-9f51-42e6-a3c3-7f87dac590e1.png"></img></div>
+			<div class="image-block" style="left: 20464px; top: 0px; max-width: 400px;"><img src="https://static.studtrain.ru/inboard-images/22f320f9-0e2e-446f-ac54-7f2386e9a8f3.png"></img></div>
+		</div>
+	</body>
+</html>
